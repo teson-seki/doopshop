@@ -23,7 +23,7 @@ export const COLLECTION_QUERY = `#graphql
         after: $endCursor
       ) {
         nodes {
-          ...ProductItem
+          ...ProductItemFragment
         }
         pageInfo {
           hasPreviousPage
@@ -48,7 +48,7 @@ export const CATALOG_QUERY = `#graphql
   ) @inContext(country: $country, language: $language) {
     products(first: $first, last: $last, before: $startCursor, after: $endCursor) {
       nodes {
-        ...ProductItem
+        ...ProductItemFragment
       }
       pageInfo {
         hasPreviousPage
