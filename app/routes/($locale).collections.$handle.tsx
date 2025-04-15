@@ -7,12 +7,13 @@ import {
   Analytics,
   getSelectedProductOptions,
   flattenConnection,
-  type JsonifyObject,
 } from '@shopify/hydrogen';
-import {ProductItem} from '~/components/ProductItem';
+import type {MoneyV2, CurrencyCode} from '@shopify/hydrogen/storefront-api-types';
+import {PaginatedResourceSection} from '~/components/PaginatedResourceSection';
 import {applyFilters, getFilterValues, getFilterCounts, type Filter} from '~/lib/filters';
 import type {ProductItemFragment} from '~/lib/fragments';
 import {PRODUCT_ITEM_FRAGMENT} from '~/lib/fragments';
+import {useVariantUrl} from '~/lib/variants';
 
 export const meta: MetaFunction<typeof loader> = ({data}) => {
   return [{title: `Hydrogen | ${data?.collection.title ?? ''} Collection`}];
@@ -84,6 +85,11 @@ async function loadCriticalData({
 function loadDeferredData({context}: LoaderFunctionArgs) {
   return {};
 }
+
+type PaginatedProductNode = {
+  node: ProductItemFragment;
+  index: number;
+};
 
 export default function Collection() {
   const {collection} = useLoaderData<typeof loader>();
@@ -227,7 +233,7 @@ export default function Collection() {
         }}
         resourcesClassName="products-grid"
       >
-        {({node: product, index}) => (
+        {({node: product, index}: PaginatedProductNode) => (
           <ProductItem
             key={product.id}
             product={product}
@@ -278,15 +284,21 @@ function ProductItem({
       )}
       <h4>{product.title}</h4>
       <small>
-        <Money data={product.priceRange.minVariantPrice} />
+        <Money
+          as="span"
+          data={{
+            amount: product.priceRange.minVariantPrice.amount,
+            currencyCode: product.priceRange.minVariantPrice.currencyCode as CurrencyCode,
+          }}
+        />
       </small>
       <div className="product-meta">
         <span className="product-condition">
-          {getMetafieldValue('condition') || '未設定'}
+          {getMetafieldValue('condition')}
         </span>
-        <span className="product-type">
-          {getMetafieldValue('is_used') === 'true' ? 'リユース品' : '新品'}
-        </span>
+        {getMetafieldValue('has_warranty') === 'true' && (
+          <span className="product-warranty">保証付き</span>
+        )}
       </div>
     </Link>
   );
