@@ -1,20 +1,7 @@
 {
   "version": 2,
-  "framework": null,
-  "buildCommand": "npm run build",
-  "outputDirectory": "dist/client",
-  "installCommand": "npm install",
-  "functions": {
-    "api/index.js": {
-      "runtime": "@vercel/node@2.15.10",
-      "memory": 1024,
-      "maxDuration": 10
-    }
-  },
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "/api/index"
-    }
-  ]
+  "framework": "remix",
+  "buildCommand": "shopify hydrogen build",
+  "devCommand": "shopify hydrogen dev",
+  "outputDirectory": "dist"
 } 
