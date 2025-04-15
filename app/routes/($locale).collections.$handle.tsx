@@ -42,7 +42,7 @@ const COLLECTION_QUERY = `#graphql
         after: $endCursor
       ) {
         nodes {
-          ...PRODUCT_ITEM_FRAGMENT
+          ...ProductItemFragment
         }
         pageInfo {
           hasPreviousPage
