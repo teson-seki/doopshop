@@ -1,11 +1,11 @@
 name = "doop-shopify"
-client_id = ""
-application_url = ""
+client_id = "7d7626b911a18381852e202d80397317"
+application_url = "https://localhost:3000"
 embedded = true
 
 [build]
 automatically_update_urls_on_dev = true
-dev_store_url = ""
+dev_store_url = "doop-shop.myshopify.com"
 
 [access_scopes]
 # Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
