@@ -345,14 +345,7 @@ export const PRODUCT_ITEM_FRAGMENT = `#graphql
         currencyCode
       }
     }
-    metafields(identifiers: [
-      {namespace: "custom", key: "model_number"}
-      {namespace: "custom", key: "condition"}
-      {namespace: "custom", key: "box"}
-      {namespace: "custom", key: "accessories"}
-      {namespace: "custom", key: "warranty"}
-      {namespace: "custom", key: "product_type"}
-    ]) {
+    metafields {
       id
       namespace
       key
