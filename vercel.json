@@ -1,0 +1,6 @@
+{
+  "buildCommand": "shopify hydrogen build --codegen",
+  "outputDirectory": "dist",
+  "framework": "remix",
+  "regions": ["iad1"]
+} 
