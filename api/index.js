@@ -1,5 +1,9 @@
+export const config = {
+  runtime: 'edge'
+};
+
 import {createRequestHandler} from '@remix-run/server-runtime';
-import {createStorefrontClient, storefrontRedirect} from '@shopify/hydrogen';
+import {createStorefrontClient} from '@shopify/hydrogen';
 import {
   cartGetIdDefault,
   cartSetIdDefault,
@@ -12,18 +16,17 @@ const handleRequest = createRequestHandler({
   build: () => import('../dist/server/index.js'),
 });
 
-export default async function handler(request, response) {
+export default async function handler(request) {
   try {
     const hydrogenResponse = await handleRequest(request);
-    
-    for (const [key, value] of hydrogenResponse.headers.entries()) {
-      response.setHeader(key, value);
-    }
-    
-    response.status(hydrogenResponse.status);
-    response.send(await hydrogenResponse.text());
+    return new Response(await hydrogenResponse.text(), {
+      status: hydrogenResponse.status,
+      headers: hydrogenResponse.headers
+    });
   } catch (error) {
     console.error(error);
-    response.status(500).send('Internal Server Error');
+    return new Response('Internal Server Error', {
+      status: 500
+    });
   }
 } 
