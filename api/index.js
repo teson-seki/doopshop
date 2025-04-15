@@ -9,7 +9,7 @@ import {
 } from '@shopify/hydrogen/api';
 
 const handleRequest = createRequestHandler({
-  build: () => import('./build/index.js'),
+  build: () => import('../dist/server/index.js'),
 });
 
 export default async function handler(request, response) {
