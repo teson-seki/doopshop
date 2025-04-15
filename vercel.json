@@ -1,5 +1,7 @@
 {
-  "framework": "remix",
-  "buildCommand": "remix build",
-  "outputDirectory": "dist/client"
+  "version": 2,
+  "framework": null,
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist/client",
+  "installCommand": "npm install"
 } 
