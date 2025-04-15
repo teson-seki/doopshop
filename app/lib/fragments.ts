@@ -232,6 +232,43 @@ export const FOOTER_QUERY = `#graphql
   ${MENU_FRAGMENT}
 ` as const;
 
+export const PRODUCT_VARIANT_FRAGMENT = `#graphql
+  fragment ProductVariant on ProductVariant {
+    availableForSale
+    compareAtPrice {
+      amount
+      currencyCode
+    }
+    id
+    image {
+      __typename
+      id
+      url
+      altText
+      width
+      height
+    }
+    price {
+      amount
+      currencyCode
+    }
+    product {
+      title
+      handle
+    }
+    selectedOptions {
+      name
+      value
+    }
+    sku
+    title
+    unitPrice {
+      amount
+      currencyCode
+    }
+  }
+` as const;
+
 const PRODUCT_FRAGMENT = `#graphql
   fragment Product on Product {
     id
@@ -286,42 +323,7 @@ const PRODUCT_FRAGMENT = `#graphql
   ${PRODUCT_VARIANT_FRAGMENT}
 ` as const;
 
-export const PRODUCT_VARIANT_FRAGMENT = `#graphql
-  fragment ProductVariant on ProductVariant {
-    availableForSale
-    compareAtPrice {
-      amount
-      currencyCode
-    }
-    id
-    image {
-      __typename
-      id
-      url
-      altText
-      width
-      height
-    }
-    price {
-      amount
-      currencyCode
-    }
-    product {
-      title
-      handle
-    }
-    selectedOptions {
-      name
-      value
-    }
-    sku
-    title
-    unitPrice {
-      amount
-      currencyCode
-    }
-  }
-` as const;
+import type {Product} from '@shopify/hydrogen/storefront-api-types';
 
 export const PRODUCT_ITEM_FRAGMENT = `#graphql
   fragment ProductItemFragment on Product {
@@ -359,3 +361,31 @@ export const PRODUCT_ITEM_FRAGMENT = `#graphql
     }
   }
 ` as const;
+
+export type ProductItemFragment = {
+  id: string;
+  title: string;
+  publishedAt: string;
+  handle: string;
+  vendor: string;
+  featuredImage: {
+    id: string;
+    url: string;
+    altText: string | null;
+    width: number;
+    height: number;
+  } | null;
+  priceRange: {
+    minVariantPrice: {
+      amount: string;
+      currencyCode: string;
+    };
+  };
+  metafields: Array<{
+    id: string;
+    namespace: string;
+    key: string;
+    value: string;
+    type: string;
+  }>;
+};

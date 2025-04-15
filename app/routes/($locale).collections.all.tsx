@@ -1,13 +1,25 @@
 import {type LoaderFunctionArgs} from '@shopify/remix-oxygen';
 import {useLoaderData, Link, type MetaFunction} from '@remix-run/react';
-import {getPaginationVariables, Image, Money} from '@shopify/hydrogen';
-import type {ProductItemFragment} from 'storefrontapi.generated';
-import {useVariantUrl} from '~/lib/variants';
+import {getPaginationVariables} from '@shopify/hydrogen';
+import type {ProductItemFragment} from '~/lib/fragments';
+import {ProductItem} from '~/components/ProductItem';
 import {PaginatedResourceSection} from '~/components/PaginatedResourceSection';
 import {PRODUCT_ITEM_FRAGMENT} from '~/lib/fragments';
 
 export const meta: MetaFunction<typeof loader> = () => {
   return [{title: `Hydrogen | Products`}];
+};
+
+type LoaderData = {
+  products: {
+    nodes: ProductItemFragment[];
+    pageInfo: {
+      hasPreviousPage: boolean;
+      hasNextPage: boolean;
+      startCursor: string;
+      endCursor: string;
+    };
+  };
 };
 
 export async function loader(args: LoaderFunctionArgs) {
@@ -24,7 +36,7 @@ export async function loader(args: LoaderFunctionArgs) {
  * Load data necessary for rendering content above the fold. This is the critical data
  * needed to render the page. If it's unavailable, the whole page should 400 or 500 error.
  */
-async function loadCriticalData({context, request}: LoaderFunctionArgs) {
+async function loadCriticalData({context, request}: LoaderFunctionArgs): Promise<LoaderData> {
   const {storefront} = context;
   const paginationVariables = getPaginationVariables(request, {
     pageBy: 8,
@@ -36,7 +48,13 @@ async function loadCriticalData({context, request}: LoaderFunctionArgs) {
     }),
     // Add other queries here, so that they are loaded in parallel
   ]);
-  return {products};
+
+  return {
+    products: {
+      nodes: products.nodes as ProductItemFragment[],
+      pageInfo: products.pageInfo,
+    },
+  };
 }
 
 /**
@@ -49,7 +67,7 @@ function loadDeferredData({context}: LoaderFunctionArgs) {
 }
 
 export default function Collection() {
-  const {products} = useLoaderData<typeof loader>();
+  const {products} = useLoaderData<LoaderData>();
 
   return (
     <div className="collection">
@@ -62,43 +80,10 @@ export default function Collection() {
           <ProductItem
             key={product.id}
             product={product}
-            loading={index < 8 ? 'eager' : undefined}
           />
         )}
       </PaginatedResourceSection>
     </div>
-  );
-}
-
-function ProductItem({
-  product,
-  loading,
-}: {
-  product: ProductItemFragment;
-  loading?: 'eager' | 'lazy';
-}) {
-  const variantUrl = useVariantUrl(product.handle);
-  return (
-    <Link
-      className="product-item"
-      key={product.id}
-      prefetch="intent"
-      to={variantUrl}
-    >
-      {product.featuredImage && (
-        <Image
-          alt={product.featuredImage.altText || product.title}
-          aspectRatio="1/1"
-          data={product.featuredImage}
-          loading={loading}
-          sizes="(min-width: 45em) 400px, 100vw"
-        />
-      )}
-      <h4>{product.title}</h4>
-      <small>
-        <Money data={product.priceRange.minVariantPrice} />
-      </small>
-    </Link>
   );
 }
 
