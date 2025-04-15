@@ -415,18 +415,20 @@ export type ProductFragment = Pick<
   >;
 };
 
-export type ProductItemFragment = Pick<
+export type ProductItemFragmentFragment = Pick<
   StorefrontAPI.Product,
   'id' | 'handle' | 'title'
 > & {
   featuredImage?: StorefrontAPI.Maybe<
-    Pick<StorefrontAPI.Image, 'id' | 'altText' | 'url' | 'width' | 'height'>
+    Pick<StorefrontAPI.Image, 'id' | 'url' | 'altText' | 'width' | 'height'>
   >;
   priceRange: {
     minVariantPrice: Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>;
   };
   metafields: Array<
-    StorefrontAPI.Maybe<Pick<StorefrontAPI.Metafield, 'key' | 'value'>>
+    StorefrontAPI.Maybe<
+      Pick<StorefrontAPI.Metafield, 'id' | 'namespace' | 'key' | 'value'>
+    >
   >;
 };
 
@@ -639,7 +641,7 @@ export type CollectionQuery = {
             featuredImage?: StorefrontAPI.Maybe<
               Pick<
                 StorefrontAPI.Image,
-                'id' | 'altText' | 'url' | 'width' | 'height'
+                'id' | 'url' | 'altText' | 'width' | 'height'
               >
             >;
             priceRange: {
@@ -650,7 +652,10 @@ export type CollectionQuery = {
             };
             metafields: Array<
               StorefrontAPI.Maybe<
-                Pick<StorefrontAPI.Metafield, 'key' | 'value'>
+                Pick<
+                  StorefrontAPI.Metafield,
+                  'id' | 'namespace' | 'key' | 'value'
+                >
               >
             >;
           }
@@ -1155,7 +1160,7 @@ interface GeneratedQueryTypes {
     return: BlogsQuery;
     variables: BlogsQueryVariables;
   };
-  '#graphql\n  #graphql\n  fragment ProductItem on Product {\n    id\n    handle\n    title\n    featuredImage {\n      id\n      altText\n      url\n      width\n      height\n    }\n    priceRange {\n      minVariantPrice {\n        amount\n        currencyCode\n      }\n    }\n    metafields(\n      identifiers: [\n        {namespace: "custom", key: "model_number"}\n        {namespace: "custom", key: "condition"}\n        {namespace: "custom", key: "box"}\n        {namespace: "custom", key: "accessories"}\n        {namespace: "custom", key: "warranty"}\n        {namespace: "custom", key: "product_type"}\n      ]\n    ) {\n      key\n      value\n    }\n  }\n\n  query Collection(\n    $handle: String!\n    $country: CountryCode\n    $language: LanguageCode\n    $first: Int\n    $last: Int\n    $startCursor: String\n    $endCursor: String\n  ) @inContext(country: $country, language: $language) {\n    collection(handle: $handle) {\n      id\n      handle\n      title\n      description\n      products(\n        first: $first,\n        last: $last,\n        before: $startCursor,\n        after: $endCursor\n      ) {\n        nodes {\n          ...ProductItem\n        }\n        pageInfo {\n          hasPreviousPage\n          hasNextPage\n          endCursor\n          startCursor\n        }\n      }\n    }\n  }\n': {
+  '#graphql\n  #graphql\n  fragment ProductItemFragment on Product {\n    id\n    handle\n    title\n    featuredImage {\n      id\n      url\n      altText\n      width\n      height\n    }\n    priceRange {\n      minVariantPrice {\n        amount\n        currencyCode\n      }\n    }\n    metafields(\n      identifiers: [\n        {namespace: "custom", key: "condition"}\n        {namespace: "custom", key: "is_used"}\n        {namespace: "custom", key: "has_accessories"}\n        {namespace: "custom", key: "has_warranty"}\n      ]\n    ) {\n      id\n      namespace\n      key\n      value\n    }\n  }\n\n  query Collection(\n    $handle: String!\n    $country: CountryCode\n    $language: LanguageCode\n    $first: Int\n    $last: Int\n    $startCursor: String\n    $endCursor: String\n  ) @inContext(country: $country, language: $language) {\n    collection(handle: $handle) {\n      id\n      handle\n      title\n      description\n      products(\n        first: $first,\n        last: $last,\n        before: $startCursor,\n        after: $endCursor\n      ) {\n        nodes {\n          ...ProductItemFragment\n        }\n        pageInfo {\n          hasPreviousPage\n          hasNextPage\n          endCursor\n          startCursor\n        }\n      }\n    }\n  }\n': {
     return: CollectionQuery;
     variables: CollectionQueryVariables;
   };
