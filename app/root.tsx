@@ -143,7 +143,25 @@ function loadDeferredData({context}: LoaderFunctionArgs) {
 }
 
 export default function App() {
-  return <Outlet />;
+  const nonce = useNonce();
+  const data = useRouteLoaderData('root');
+  return (
+    <html lang="ja">
+      <head>
+        <meta charSet="utf-8" />
+        <meta name="viewport" content="width=device-width,initial-scale=1" />
+        <Meta />
+        <Links />
+      </head>
+      <body>
+        <PageLayout {...data}>
+          <Outlet />
+        </PageLayout>
+        <ScrollRestoration nonce={nonce} />
+        <Scripts nonce={nonce} />
+      </body>
+    </html>
+  );
 }
 
 export function ErrorBoundary() {
