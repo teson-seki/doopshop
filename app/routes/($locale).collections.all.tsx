@@ -1,94 +1,56 @@
 import {json, type LoaderFunctionArgs} from '@shopify/remix-oxygen';
-import {useLoaderData, Link, type MetaFunction} from '@remix-run/react';
-import {Pagination, getPaginationVariables} from '@shopify/hydrogen';
-import {type ProductItemFragment} from '~/lib/fragments';
-import {ProductItem} from '~/components/ProductItem';
-import {COLLECTION_QUERY, CATALOG_QUERY} from '~/graphql/queries';
+import {useLoaderData} from '@remix-run/react';
 import {PaginatedResourceSection} from '~/components/PaginatedResourceSection';
+import {CATALOG_QUERY} from '~/graphql/queries';
+import type {ProductItemFragment} from '~/lib/fragments';
 
-export const meta: MetaFunction<typeof loader> = () => {
-  return [{title: `Hydrogen | Products`}];
+export const meta = () => {
+  return [{title: 'All Products | Hydrogen Demo Store'}];
 };
 
-type LoaderData = {
-  products: {
-    nodes: ProductItemFragment[];
-    pageInfo: {
-      hasPreviousPage: boolean;
-      hasNextPage: boolean;
-      startCursor: string | null;
-      endCursor: string | null;
-    };
-  };
-};
+export async function loader({context, request}: LoaderFunctionArgs) {
+  const searchParams = new URL(request.url).searchParams;
+  const cursor = searchParams.get('cursor');
+  const direction = searchParams.get('direction');
 
-export async function loader(args: LoaderFunctionArgs) {
-  // Start fetching non-critical data without blocking time to first byte
-  const deferredData = loadDeferredData(args);
-
-  // Await the critical data required to render initial state of the page
-  const criticalData = await loadCriticalData(args);
-
-  return {...deferredData, ...criticalData};
-}
-
-/**
- * Load data necessary for rendering content above the fold. This is the critical data
- * needed to render the page. If it's unavailable, the whole page should 400 or 500 error.
- */
-async function loadCriticalData({context, request}: LoaderFunctionArgs): Promise<LoaderData> {
-  const {storefront} = context;
-  const paginationVariables = getPaginationVariables(request, {
-    pageBy: 8,
-  });
-
-  const {collection} = await storefront.query(COLLECTION_QUERY, {
-    variables: {...paginationVariables, handle: "all"},
-  });
-
-  if (!collection) {
-    throw new Response('Collection not found', {
-      status: 404,
-    });
-  }
-
-  return {
-    products: {
-      nodes: collection.products.nodes as ProductItemFragment[],
-      pageInfo: {
-        hasPreviousPage: collection.products.pageInfo.hasPreviousPage,
-        hasNextPage: collection.products.pageInfo.hasNextPage,
-        startCursor: collection.products.pageInfo.startCursor || null,
-        endCursor: collection.products.pageInfo.endCursor || null,
-      },
+  const {products} = await context.storefront.query(CATALOG_QUERY, {
+    variables: {
+      first: direction === 'previous' ? null : 4,
+      last: direction === 'previous' ? 4 : null,
+      startCursor: direction === 'previous' ? cursor : null,
+      endCursor: direction === 'previous' ? null : cursor,
     },
-  };
-}
+  });
 
-/**
- * Load data for rendering content below the fold. This data is deferred and will be
- * fetched after the initial page load. If it's unavailable, the page should still 200.
- * Make sure to not throw any errors here, as it will cause the page to 500.
- */
-function loadDeferredData({context}: LoaderFunctionArgs) {
-  return {};
+  return json({products});
 }
 
 export default function Collection() {
-  const {products} = useLoaderData<LoaderData>();
+  const {products} = useLoaderData<typeof loader>();
 
   return (
-    <div className="collection">
-      <h1>Products</h1>
-      <PaginatedResourceSection
+    <div className="products">
+      <h1>All Products</h1>
+      <PaginatedResourceSection<ProductItemFragment>
         connection={products}
-        resourcesClassName="products-grid"
+        resourcesClassName="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"
       >
-        {({node: product, index}) => (
-          <ProductItem
-            key={product.id}
-            product={product}
-          />
+        {({node: product}) => (
+          <div key={product.id} className="product-item">
+            <h2>{product.title}</h2>
+            {product.featuredImage && (
+              <img
+                src={product.featuredImage.url}
+                alt={product.featuredImage.altText || product.title}
+                width={200}
+                height={200}
+              />
+            )}
+            <p>
+              {product.priceRange.minVariantPrice.amount}{' '}
+              {product.priceRange.minVariantPrice.currencyCode}
+            </p>
+          </div>
         )}
       </PaginatedResourceSection>
     </div>
