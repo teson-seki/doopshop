@@ -332,8 +332,8 @@ export const PRODUCT_ITEM_FRAGMENT = `#graphql
     title
     featuredImage {
       id
-      altText
       url
+      altText
       width
       height
     }
@@ -345,14 +345,14 @@ export const PRODUCT_ITEM_FRAGMENT = `#graphql
     }
     metafields(
       identifiers: [
-        {namespace: "custom", key: "model_number"}
         {namespace: "custom", key: "condition"}
-        {namespace: "custom", key: "box"}
-        {namespace: "custom", key: "accessories"}
-        {namespace: "custom", key: "warranty"}
-        {namespace: "custom", key: "product_type"}
+        {namespace: "custom", key: "is_used"}
+        {namespace: "custom", key: "has_accessories"}
+        {namespace: "custom", key: "has_warranty"}
       ]
     ) {
+      id
+      namespace
       key
       value
     }
