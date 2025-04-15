@@ -36,7 +36,7 @@ export default async function handleRequest(
     await body.allReady;
   }
 
-  responseHeaders.set('Content-Type', 'text/html');
+  responseHeaders.set('Content-Type', 'text/html; charset=utf-8');
   responseHeaders.set('Content-Security-Policy', header);
 
   return new Response(body, {
