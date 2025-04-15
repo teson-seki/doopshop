@@ -10,6 +10,7 @@ import type {ProductItemFragment} from 'storefrontapi.generated';
 import {useVariantUrl} from '~/lib/variants';
 import {PaginatedResourceSection} from '~/components/PaginatedResourceSection';
 import {applyFilters, getFilterValues, getFilterCounts, type Filter} from '~/lib/filters';
+import {PRODUCT_ITEM_FRAGMENT} from '~/lib/fragments';
 
 export const meta: MetaFunction<typeof loader> = ({data}) => {
   return [{title: `Hydrogen | ${data?.collection.title ?? ''} Collection`}];
@@ -278,47 +279,6 @@ function ProductItem({
   );
 }
 
-const PRODUCT_ITEM_FRAGMENT = `#graphql
-  fragment MoneyProductItem on MoneyV2 {
-    amount
-    currencyCode
-  }
-  fragment ProductItem on Product {
-    id
-    handle
-    title
-    featuredImage {
-      id
-      altText
-      url
-      width
-      height
-    }
-    priceRange {
-      minVariantPrice {
-        ...MoneyProductItem
-      }
-      maxVariantPrice {
-        ...MoneyProductItem
-      }
-    }
-    metafields(
-      identifiers: [
-        {namespace: "custom", key: "model_number"}
-        {namespace: "custom", key: "condition"}
-        {namespace: "custom", key: "has_box"}
-        {namespace: "custom", key: "has_accessories"}
-        {namespace: "custom", key: "has_warranty"}
-        {namespace: "custom", key: "is_used"}
-      ]
-    ) {
-      key
-      value
-    }
-  }
-` as const;
-
-// NOTE: https://shopify.dev/docs/api/storefront/2022-04/objects/collection
 const COLLECTION_QUERY = `#graphql
   ${PRODUCT_ITEM_FRAGMENT}
   query Collection(

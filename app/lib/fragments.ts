@@ -322,3 +322,43 @@ export const PRODUCT_VARIANT_FRAGMENT = `#graphql
     }
   }
 ` as const;
+
+export const PRODUCT_ITEM_FRAGMENT = `#graphql
+  fragment MoneyProductItem on MoneyV2 {
+    amount
+    currencyCode
+  }
+  fragment ProductItem on Product {
+    id
+    handle
+    title
+    featuredImage {
+      id
+      altText
+      url
+      width
+      height
+    }
+    priceRange {
+      minVariantPrice {
+        ...MoneyProductItem
+      }
+      maxVariantPrice {
+        ...MoneyProductItem
+      }
+    }
+    metafields(
+      identifiers: [
+        {namespace: "custom", key: "model_number"}
+        {namespace: "custom", key: "condition"}
+        {namespace: "custom", key: "has_box"}
+        {namespace: "custom", key: "has_accessories"}
+        {namespace: "custom", key: "has_warranty"}
+        {namespace: "custom", key: "is_used"}
+      ]
+    ) {
+      key
+      value
+    }
+  }
+` as const;
