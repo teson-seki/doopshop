@@ -6,7 +6,7 @@
   "installCommand": "npm install",
   "functions": {
     "api/index.js": {
-      "runtime": "edge",
+      "runtime": "nodejs18.x",
       "memory": 1024,
       "maxDuration": 10
     }
