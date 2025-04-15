@@ -231,3 +231,57 @@ export const FOOTER_QUERY = `#graphql
   }
   ${MENU_FRAGMENT}
 ` as const;
+
+const PRODUCT_FRAGMENT = `#graphql
+  fragment Product on Product {
+    id
+    title
+    vendor
+    handle
+    descriptionHtml
+    description
+    encodedVariantExistence
+    encodedVariantAvailability
+    options {
+      name
+      optionValues {
+        name
+        firstSelectableVariant {
+          ...ProductVariant
+        }
+        swatch {
+          color
+          image {
+            previewImage {
+              url
+            }
+          }
+        }
+      }
+    }
+    selectedOrFirstAvailableVariant(selectedOptions: $selectedOptions, ignoreUnknownOptions: true, caseInsensitiveMatch: true) {
+      ...ProductVariant
+    }
+    adjacentVariants (selectedOptions: $selectedOptions) {
+      ...ProductVariant
+    }
+    seo {
+      description
+      title
+    }
+    metafields(
+      identifiers: [
+        {namespace: "custom", key: "model_number"}
+        {namespace: "custom", key: "condition"}
+        {namespace: "custom", key: "has_box"}
+        {namespace: "custom", key: "has_accessories"}
+        {namespace: "custom", key: "has_warranty"}
+        {namespace: "custom", key: "is_used"}
+      ]
+    ) {
+      key
+      value
+    }
+  }
+  ${PRODUCT_VARIANT_FRAGMENT}
+` as const;

@@ -1,5 +1,5 @@
 import {redirect, type LoaderFunctionArgs} from '@shopify/remix-oxygen';
-import {useLoaderData, Link, type MetaFunction} from '@remix-run/react';
+import {useLoaderData, Link, type MetaFunction, useSearchParams} from '@remix-run/react';
 import {
   getPaginationVariables,
   Image,
@@ -9,6 +9,7 @@ import {
 import type {ProductItemFragment} from 'storefrontapi.generated';
 import {useVariantUrl} from '~/lib/variants';
 import {PaginatedResourceSection} from '~/components/PaginatedResourceSection';
+import {applyFilters, getFilterValues, getFilterCounts, type Filter} from '~/lib/filters';
 
 export const meta: MetaFunction<typeof loader> = ({data}) => {
   return [{title: `Hydrogen | ${data?.collection.title ?? ''} Collection`}];
@@ -72,13 +73,144 @@ function loadDeferredData({context}: LoaderFunctionArgs) {
 
 export default function Collection() {
   const {collection} = useLoaderData<typeof loader>();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const products = collection.products.nodes;
+  const filters: Filter[] = Array.from(searchParams.entries()).map(([key, value]) => ({
+    key,
+    value,
+  }));
+
+  const filteredProducts = applyFilters(products, filters);
+  const conditionCounts = getFilterCounts(products, 'condition');
+  const isUsedCounts = getFilterCounts(products, 'is_used');
+  const hasAccessoriesCounts = getFilterCounts(products, 'has_accessories');
+  const hasWarrantyCounts = getFilterCounts(products, 'has_warranty');
+
+  const handleFilterChange = (key: string, value: string) => {
+    const newSearchParams = new URLSearchParams(searchParams);
+    if (newSearchParams.has(key, value)) {
+      newSearchParams.delete(key, value);
+    } else {
+      newSearchParams.append(key, value);
+    }
+    setSearchParams(newSearchParams);
+  };
 
   return (
     <div className="collection">
       <h1>{collection.title}</h1>
       <p className="collection-description">{collection.description}</p>
+      <div className="filters">
+        <h2>フィルター</h2>
+        <div className="filter-group">
+          <h3>商品種別</h3>
+          <label>
+            <input
+              type="checkbox"
+              name="is_used"
+              value="true"
+              checked={searchParams.has('is_used', 'true')}
+              onChange={() => handleFilterChange('is_used', 'true')}
+            />
+            リユース品 ({isUsedCounts['true'] || 0})
+          </label>
+          <label>
+            <input
+              type="checkbox"
+              name="is_used"
+              value="false"
+              checked={searchParams.has('is_used', 'false')}
+              onChange={() => handleFilterChange('is_used', 'false')}
+            />
+            新品 ({isUsedCounts['false'] || 0})
+          </label>
+        </div>
+        <div className="filter-group">
+          <h3>状態</h3>
+          <label>
+            <input
+              type="checkbox"
+              name="condition"
+              value="new"
+              checked={searchParams.has('condition', 'new')}
+              onChange={() => handleFilterChange('condition', 'new')}
+            />
+            新品同様 ({conditionCounts['new'] || 0})
+          </label>
+          <label>
+            <input
+              type="checkbox"
+              name="condition"
+              value="good"
+              checked={searchParams.has('condition', 'good')}
+              onChange={() => handleFilterChange('condition', 'good')}
+            />
+            良好 ({conditionCounts['good'] || 0})
+          </label>
+          <label>
+            <input
+              type="checkbox"
+              name="condition"
+              value="fair"
+              checked={searchParams.has('condition', 'fair')}
+              onChange={() => handleFilterChange('condition', 'fair')}
+            />
+            可 ({conditionCounts['fair'] || 0})
+          </label>
+        </div>
+        <div className="filter-group">
+          <h3>付属品</h3>
+          <label>
+            <input
+              type="checkbox"
+              name="has_accessories"
+              value="true"
+              checked={searchParams.has('has_accessories', 'true')}
+              onChange={() => handleFilterChange('has_accessories', 'true')}
+            />
+            あり ({hasAccessoriesCounts['true'] || 0})
+          </label>
+          <label>
+            <input
+              type="checkbox"
+              name="has_accessories"
+              value="false"
+              checked={searchParams.has('has_accessories', 'false')}
+              onChange={() => handleFilterChange('has_accessories', 'false')}
+            />
+            なし ({hasAccessoriesCounts['false'] || 0})
+          </label>
+        </div>
+        <div className="filter-group">
+          <h3>保証書</h3>
+          <label>
+            <input
+              type="checkbox"
+              name="has_warranty"
+              value="true"
+              checked={searchParams.has('has_warranty', 'true')}
+              onChange={() => handleFilterChange('has_warranty', 'true')}
+            />
+            あり ({hasWarrantyCounts['true'] || 0})
+          </label>
+          <label>
+            <input
+              type="checkbox"
+              name="has_warranty"
+              value="false"
+              checked={searchParams.has('has_warranty', 'false')}
+              onChange={() => handleFilterChange('has_warranty', 'false')}
+            />
+            なし ({hasWarrantyCounts['false'] || 0})
+          </label>
+        </div>
+      </div>
       <PaginatedResourceSection
-        connection={collection.products}
+        connection={{
+          ...collection.products,
+          nodes: filteredProducts,
+        }}
         resourcesClassName="products-grid"
       >
         {({node: product, index}) => (
@@ -109,6 +241,11 @@ function ProductItem({
   loading?: 'eager' | 'lazy';
 }) {
   const variantUrl = useVariantUrl(product.handle);
+  const getMetafieldValue = (key: string) => {
+    const metafield = product.metafields?.find((m) => m.key === key);
+    return metafield?.value;
+  };
+
   return (
     <Link
       className="product-item"
@@ -129,6 +266,14 @@ function ProductItem({
       <small>
         <Money data={product.priceRange.minVariantPrice} />
       </small>
+      <div className="product-meta">
+        <span className="product-condition">
+          {getMetafieldValue('condition') || '未設定'}
+        </span>
+        <span className="product-type">
+          {getMetafieldValue('is_used') === 'true' ? 'リユース品' : '新品'}
+        </span>
+      </div>
     </Link>
   );
 }
@@ -156,6 +301,19 @@ const PRODUCT_ITEM_FRAGMENT = `#graphql
       maxVariantPrice {
         ...MoneyProductItem
       }
+    }
+    metafields(
+      identifiers: [
+        {namespace: "custom", key: "model_number"}
+        {namespace: "custom", key: "condition"}
+        {namespace: "custom", key: "has_box"}
+        {namespace: "custom", key: "has_accessories"}
+        {namespace: "custom", key: "has_warranty"}
+        {namespace: "custom", key: "is_used"}
+      ]
+    ) {
+      key
+      value
     }
   }
 ` as const;

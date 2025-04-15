@@ -95,7 +95,13 @@ export default function Product() {
     selectedOrFirstAvailableVariant: selectedVariant,
   });
 
-  const {title, descriptionHtml} = product;
+  const {title, descriptionHtml, metafields} = product;
+
+  // メタフィールドの値を取得
+  const getMetafieldValue = (key: string) => {
+    const metafield = metafields?.find((m) => m.key === key);
+    return metafield?.value;
+  };
 
   return (
     <div className="product">
@@ -112,6 +118,38 @@ export default function Product() {
           selectedVariant={selectedVariant}
         />
         <br />
+        <br />
+        <div className="product-details">
+          <h2>商品詳細</h2>
+          <table>
+            <tbody>
+              <tr>
+                <th>型番</th>
+                <td>{getMetafieldValue('model_number') || '未設定'}</td>
+              </tr>
+              <tr>
+                <th>状態</th>
+                <td>{getMetafieldValue('condition') || '未設定'}</td>
+              </tr>
+              <tr>
+                <th>箱</th>
+                <td>{getMetafieldValue('has_box') === 'true' ? 'あり' : 'なし'}</td>
+              </tr>
+              <tr>
+                <th>付属品</th>
+                <td>{getMetafieldValue('has_accessories') === 'true' ? 'あり' : 'なし'}</td>
+              </tr>
+              <tr>
+                <th>保証書</th>
+                <td>{getMetafieldValue('has_warranty') === 'true' ? 'あり' : 'なし'}</td>
+              </tr>
+              <tr>
+                <th>商品種別</th>
+                <td>{getMetafieldValue('is_used') === 'true' ? 'リユース品' : '新品'}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
         <br />
         <p>
           <strong>Description</strong>
@@ -212,6 +250,19 @@ const PRODUCT_FRAGMENT = `#graphql
     seo {
       description
       title
+    }
+    metafields(
+      identifiers: [
+        {namespace: "custom", key: "model_number"}
+        {namespace: "custom", key: "condition"}
+        {namespace: "custom", key: "has_box"}
+        {namespace: "custom", key: "has_accessories"}
+        {namespace: "custom", key: "has_warranty"}
+        {namespace: "custom", key: "is_used"}
+      ]
+    ) {
+      key
+      value
     }
   }
   ${PRODUCT_VARIANT_FRAGMENT}
