@@ -98,7 +98,7 @@ const CATALOG_QUERY = `#graphql
   ) @inContext(country: $country, language: $language) {
     products(first: $first, last: $last, before: $startCursor, after: $endCursor) {
       nodes {
-        ...ProductItemFragment
+        ...ProductItem
       }
       pageInfo {
         hasPreviousPage

@@ -326,7 +326,7 @@ const PRODUCT_FRAGMENT = `#graphql
 import type {Product} from '@shopify/hydrogen/storefront-api-types';
 
 export const PRODUCT_ITEM_FRAGMENT = `#graphql
-  fragment ProductItemFragment on Product {
+  fragment ProductItem on Product {
     id
     title
     publishedAt
