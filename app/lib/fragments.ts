@@ -329,23 +329,43 @@ export const PRODUCT_ITEM_FRAGMENT = `#graphql
   fragment ProductItem on Product {
     id
     title
-    publishedAt
     handle
     vendor
-    featuredImage {
-      id
-      url
-      altText
-      width
-      height
-    }
+    description
     priceRange {
       minVariantPrice {
         amount
         currencyCode
       }
     }
-    metafields {
+    images(first: 1) {
+      nodes {
+        id
+        url
+        altText
+        width
+        height
+      }
+    }
+    variants(first: 1) {
+      nodes {
+        id
+        title
+        availableForSale
+        price {
+          amount
+          currencyCode
+        }
+      }
+    }
+    metafields(identifiers: [
+      {namespace: "custom", key: "model_number"}
+      {namespace: "custom", key: "condition"}
+      {namespace: "custom", key: "box"}
+      {namespace: "custom", key: "accessories"}
+      {namespace: "custom", key: "warranty"}
+      {namespace: "custom", key: "product_type"}
+    ]) {
       id
       namespace
       key
@@ -358,27 +378,33 @@ export const PRODUCT_ITEM_FRAGMENT = `#graphql
 export type ProductItemFragment = {
   id: string;
   title: string;
-  publishedAt: string;
   handle: string;
   vendor: string;
-  featuredImage: {
-    id: string;
-    url: string;
-    altText: string | null;
-    width: number;
-    height: number;
-  } | null;
+  description: string;
   priceRange: {
     minVariantPrice: {
       amount: string;
       currencyCode: string;
     };
   };
-  metafields: Array<{
-    id: string;
-    namespace: string;
-    key: string;
-    value: string;
-    type: string;
-  }>;
+  images: {
+    nodes: Array<{
+      id: string;
+      url: string;
+      altText: string | null;
+      width: number;
+      height: number;
+    }>;
+  };
+  variants: {
+    nodes: Array<{
+      id: string;
+      title: string;
+      availableForSale: boolean;
+      price: {
+        amount: string;
+        currencyCode: string;
+      };
+    }>;
+  };
 };

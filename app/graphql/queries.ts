@@ -23,7 +23,7 @@ export const COLLECTION_QUERY = `#graphql
         after: $endCursor
       ) {
         nodes {
-          ...ProductItemFragment
+          ...ProductItem
         }
         pageInfo {
           hasPreviousPage

@@ -1,10 +1,10 @@
-import {type LoaderFunctionArgs} from '@shopify/remix-oxygen';
+import {json, type LoaderFunctionArgs} from '@shopify/remix-oxygen';
 import {useLoaderData, Link, type MetaFunction} from '@remix-run/react';
-import {getPaginationVariables} from '@shopify/hydrogen';
-import type {ProductItemFragment} from '~/lib/fragments';
+import {Pagination, getPaginationVariables} from '@shopify/hydrogen';
+import {PRODUCT_ITEM_FRAGMENT, type ProductItemFragment} from '~/lib/fragments';
 import {ProductItem} from '~/components/ProductItem';
+import {COLLECTION_QUERY} from '~/graphql/queries';
 import {PaginatedResourceSection} from '~/components/PaginatedResourceSection';
-import {PRODUCT_ITEM_FRAGMENT} from '~/lib/fragments';
 
 export const meta: MetaFunction<typeof loader> = () => {
   return [{title: `Hydrogen | Products`}];
@@ -16,8 +16,8 @@ type LoaderData = {
     pageInfo: {
       hasPreviousPage: boolean;
       hasNextPage: boolean;
-      startCursor: string;
-      endCursor: string;
+      startCursor: string | null;
+      endCursor: string | null;
     };
   };
 };
@@ -42,17 +42,25 @@ async function loadCriticalData({context, request}: LoaderFunctionArgs): Promise
     pageBy: 8,
   });
 
-  const [{products}] = await Promise.all([
-    storefront.query(CATALOG_QUERY, {
-      variables: {...paginationVariables},
-    }),
-    // Add other queries here, so that they are loaded in parallel
-  ]);
+  const {collection} = await storefront.query(COLLECTION_QUERY, {
+    variables: {...paginationVariables, handle: "all"},
+  });
+
+  if (!collection) {
+    throw new Response('Collection not found', {
+      status: 404,
+    });
+  }
 
   return {
     products: {
-      nodes: products.nodes as ProductItemFragment[],
-      pageInfo: products.pageInfo,
+      nodes: collection.products.nodes as ProductItemFragment[],
+      pageInfo: {
+        hasPreviousPage: collection.products.pageInfo.hasPreviousPage,
+        hasNextPage: collection.products.pageInfo.hasNextPage,
+        startCursor: collection.products.pageInfo.startCursor || null,
+        endCursor: collection.products.pageInfo.endCursor || null,
+      },
     },
   };
 }
@@ -86,27 +94,3 @@ export default function Collection() {
     </div>
   );
 }
-
-const CATALOG_QUERY = `#graphql
-  query Catalog(
-    $country: CountryCode
-    $language: LanguageCode
-    $first: Int
-    $last: Int
-    $startCursor: String
-    $endCursor: String
-  ) @inContext(country: $country, language: $language) {
-    products(first: $first, last: $last, before: $startCursor, after: $endCursor) {
-      nodes {
-        ...ProductItem
-      }
-      pageInfo {
-        hasPreviousPage
-        hasNextPage
-        startCursor
-        endCursor
-      }
-    }
-  }
-  ${PRODUCT_ITEM_FRAGMENT}
-`
