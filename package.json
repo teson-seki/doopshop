@@ -5,7 +5,7 @@
   "version": "2025.1.6",
   "type": "module",
   "scripts": {
-    "build": "remix build && shopify hydrogen build --codegen",
+    "build": "remix build",
     "dev": "shopify hydrogen dev --codegen",
     "preview": "shopify hydrogen preview --build",
     "lint": "eslint --no-error-on-unmatched-pattern .",

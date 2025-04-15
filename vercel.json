@@ -1,9 +1,5 @@
 {
-  "buildCommand": "npm run build",
-  "devCommand": "npm run dev",
   "framework": "remix",
-  "outputDirectory": "dist/client",
-  "regions": ["iad1"],
-  "installCommand": "npm install",
-  "public": true
+  "buildCommand": "remix build",
+  "outputDirectory": "dist/client"
 } 
