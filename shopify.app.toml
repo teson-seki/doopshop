@@ -1,6 +1,6 @@
 name = "doop-shopify"
 client_id = "7d7626b911a18381852e202d80397317"
-application_url = "https://localhost:3000"
+application_url = "https://doopshop.vercel.app"
 embedded = true
 
 [build]
@@ -12,7 +12,7 @@ dev_store_url = "doop-shop.myshopify.com"
 scopes = "read_products,write_products,read_inventory,write_inventory,read_orders,write_orders"
 
 [auth]
-redirect_urls = ["https://localhost:3000/auth/callback"]
+redirect_urls = ["https://doopshop.vercel.app/auth/callback"]
 
 [webhooks]
 api_version = "2024-01" 

@@ -324,41 +324,38 @@ export const PRODUCT_VARIANT_FRAGMENT = `#graphql
 ` as const;
 
 export const PRODUCT_ITEM_FRAGMENT = `#graphql
-  fragment MoneyProductItem on MoneyV2 {
-    amount
-    currencyCode
-  }
-  fragment ProductItem on Product {
+  fragment ProductItemFragment on Product {
     id
-    handle
     title
+    publishedAt
+    handle
+    vendor
     featuredImage {
       id
-      altText
       url
+      altText
       width
       height
     }
     priceRange {
       minVariantPrice {
-        ...MoneyProductItem
-      }
-      maxVariantPrice {
-        ...MoneyProductItem
+        amount
+        currencyCode
       }
     }
-    metafields(
-      identifiers: [
-        {namespace: "custom", key: "model_number"}
-        {namespace: "custom", key: "condition"}
-        {namespace: "custom", key: "has_box"}
-        {namespace: "custom", key: "has_accessories"}
-        {namespace: "custom", key: "has_warranty"}
-        {namespace: "custom", key: "is_used"}
-      ]
-    ) {
+    metafields(identifiers: [
+      {namespace: "custom", key: "model_number"}
+      {namespace: "custom", key: "condition"}
+      {namespace: "custom", key: "box"}
+      {namespace: "custom", key: "accessories"}
+      {namespace: "custom", key: "warranty"}
+      {namespace: "custom", key: "product_type"}
+    ]) {
+      id
+      namespace
       key
       value
+      type
     }
   }
 ` as const;
