@@ -2,11 +2,15 @@ import {redirect, type LoaderFunctionArgs, json} from '@shopify/remix-oxygen';
 import {useLoaderData, Link, type MetaFunction, useSearchParams, useParams} from '@remix-run/react';
 import {
   getPaginationVariables,
+  Image,
+  Money,
+  Analytics,
   getSelectedProductOptions,
   flattenConnection,
+  type JsonifyObject,
 } from '@shopify/hydrogen';
 import {ProductItem} from '~/components/ProductItem';
-import {applyFilters, getFilterValues, getFilterCounts} from '~/lib/filters';
+import {applyFilters, getFilterValues, getFilterCounts, type Filter} from '~/lib/filters';
 import type {ProductItemFragment} from '~/lib/fragments';
 import {PRODUCT_ITEM_FRAGMENT} from '~/lib/fragments';
 
@@ -14,67 +18,25 @@ export const meta: MetaFunction<typeof loader> = ({data}) => {
   return [{title: `Hydrogen | ${data?.collection.title ?? ''} Collection`}];
 };
 
-const COLLECTION_QUERY = `#graphql
-  ${PRODUCT_ITEM_FRAGMENT}
-  query Collection(
-    $handle: String!
-    $country: CountryCode
-    $language: LanguageCode
-    $first: Int
-    $last: Int
-    $startCursor: String
-    $endCursor: String
-  ) @inContext(country: $country, language: $language) {
-    collection(handle: $handle) {
-      id
-      handle
-      title
-      description
-      products(
-        first: $first,
-        last: $last,
-        before: $startCursor,
-        after: $endCursor
-      ) {
-        nodes {
-          ...ProductItemFragment
-        }
-        pageInfo {
-          hasPreviousPage
-          hasNextPage
-          endCursor
-          startCursor
-        }
-      }
-    }
-  }
-` as const;
+type LoaderData = {
+  collection: {
+    title: string;
+    description: string | null;
+    products: {
+      nodes: ProductItemFragment[];
+    };
+  };
+  products: ProductItemFragment[];
+};
 
-export async function loader({request, params, context}: LoaderFunctionArgs) {
-  const {handle} = params;
-  const {storefront} = context;
-  const paginationVariables = getPaginationVariables(request, {
-    pageBy: 8,
-  });
+export async function loader(args: LoaderFunctionArgs) {
+  // Start fetching non-critical data without blocking time to first byte
+  const deferredData = loadDeferredData(args);
 
-  if (!handle) {
-    return redirect('/collections');
-  }
+  // Await the critical data required to render initial state of the page
+  const criticalData = await loadCriticalData(args);
 
-  const {collection} = await storefront.query(COLLECTION_QUERY, {
-    variables: {...paginationVariables, handle},
-  });
-
-  if (!collection) {
-    throw new Response(`Collection ${handle} not found`, {
-      status: 404,
-    });
-  }
-
-  return json({
-    collection,
-    products: collection.products.nodes as ProductItemFragment[],
-  });
+  return {...deferredData, ...criticalData};
 }
 
 /**
@@ -123,28 +85,21 @@ function loadDeferredData({context}: LoaderFunctionArgs) {
   return {};
 }
 
-type LoaderData = {
-  collection: {
-    title: string;
-    description: string | null;
-    products: {
-      nodes: ProductItemFragment[];
-    };
-  };
-  products: ProductItemFragment[];
-};
-
 export default function Collection() {
-  const {collection, products} = useLoaderData<LoaderData>();
+  const {collection} = useLoaderData<typeof loader>();
   const [searchParams, setSearchParams] = useSearchParams();
-  const {language} = useParams();
 
-  const filters = Array.from(searchParams.entries()).map(([key, value]) => ({
+  const products = collection.products.nodes;
+  const filters: Filter[] = Array.from(searchParams.entries()).map(([key, value]) => ({
     key,
     value,
   }));
 
   const filteredProducts = applyFilters(products, filters);
+  const conditionCounts = getFilterCounts(products, 'condition');
+  const isUsedCounts = getFilterCounts(products, 'is_used');
+  const hasAccessoriesCounts = getFilterCounts(products, 'has_accessories');
+  const hasWarrantyCounts = getFilterCounts(products, 'has_warranty');
 
   const handleFilterChange = (key: string, value: string) => {
     const newSearchParams = new URLSearchParams(searchParams);
@@ -159,70 +114,216 @@ export default function Collection() {
   return (
     <div className="collection">
       <h1>{collection.title}</h1>
-      {collection.description && (
-        <div className="collection-description">
-          <p>{collection.description}</p>
-        </div>
-      )}
+      <p className="collection-description">{collection.description}</p>
       <div className="filters">
+        <h2>フィルター</h2>
         <div className="filter-group">
-          <h3>商品タイプ</h3>
-          {getFilterValues(products, 'product_type').map((value) => (
-            <label key={value} className="filter-option">
-              <input
-                type="checkbox"
-                checked={searchParams.has('product_type', value)}
-                onChange={() => handleFilterChange('product_type', value)}
-              />
-              {value} ({getFilterCounts(products, 'product_type')[value] || 0})
-            </label>
-          ))}
+          <h3>商品種別</h3>
+          <label>
+            <input
+              type="checkbox"
+              name="is_used"
+              value="true"
+              checked={searchParams.has('is_used', 'true')}
+              onChange={() => handleFilterChange('is_used', 'true')}
+            />
+            リユース品 ({isUsedCounts['true'] || 0})
+          </label>
+          <label>
+            <input
+              type="checkbox"
+              name="is_used"
+              value="false"
+              checked={searchParams.has('is_used', 'false')}
+              onChange={() => handleFilterChange('is_used', 'false')}
+            />
+            新品 ({isUsedCounts['false'] || 0})
+          </label>
         </div>
         <div className="filter-group">
           <h3>状態</h3>
-          {getFilterValues(products, 'condition').map((value) => (
-            <label key={value} className="filter-option">
-              <input
-                type="checkbox"
-                checked={searchParams.has('condition', value)}
-                onChange={() => handleFilterChange('condition', value)}
-              />
-              {value} ({getFilterCounts(products, 'condition')[value] || 0})
-            </label>
-          ))}
+          <label>
+            <input
+              type="checkbox"
+              name="condition"
+              value="new"
+              checked={searchParams.has('condition', 'new')}
+              onChange={() => handleFilterChange('condition', 'new')}
+            />
+            新品同様 ({conditionCounts['new'] || 0})
+          </label>
+          <label>
+            <input
+              type="checkbox"
+              name="condition"
+              value="good"
+              checked={searchParams.has('condition', 'good')}
+              onChange={() => handleFilterChange('condition', 'good')}
+            />
+            良好 ({conditionCounts['good'] || 0})
+          </label>
+          <label>
+            <input
+              type="checkbox"
+              name="condition"
+              value="fair"
+              checked={searchParams.has('condition', 'fair')}
+              onChange={() => handleFilterChange('condition', 'fair')}
+            />
+            可 ({conditionCounts['fair'] || 0})
+          </label>
         </div>
         <div className="filter-group">
           <h3>付属品</h3>
-          {getFilterValues(products, 'accessories').map((value) => (
-            <label key={value} className="filter-option">
-              <input
-                type="checkbox"
-                checked={searchParams.has('accessories', value)}
-                onChange={() => handleFilterChange('accessories', value)}
-              />
-              {value} ({getFilterCounts(products, 'accessories')[value] || 0})
-            </label>
-          ))}
+          <label>
+            <input
+              type="checkbox"
+              name="has_accessories"
+              value="true"
+              checked={searchParams.has('has_accessories', 'true')}
+              onChange={() => handleFilterChange('has_accessories', 'true')}
+            />
+            あり ({hasAccessoriesCounts['true'] || 0})
+          </label>
+          <label>
+            <input
+              type="checkbox"
+              name="has_accessories"
+              value="false"
+              checked={searchParams.has('has_accessories', 'false')}
+              onChange={() => handleFilterChange('has_accessories', 'false')}
+            />
+            なし ({hasAccessoriesCounts['false'] || 0})
+          </label>
         </div>
         <div className="filter-group">
-          <h3>保証</h3>
-          {getFilterValues(products, 'warranty').map((value) => (
-            <label key={value} className="filter-option">
-              <input
-                type="checkbox"
-                checked={searchParams.has('warranty', value)}
-                onChange={() => handleFilterChange('warranty', value)}
-              />
-              {value} ({getFilterCounts(products, 'warranty')[value] || 0})
-            </label>
-          ))}
+          <h3>保証書</h3>
+          <label>
+            <input
+              type="checkbox"
+              name="has_warranty"
+              value="true"
+              checked={searchParams.has('has_warranty', 'true')}
+              onChange={() => handleFilterChange('has_warranty', 'true')}
+            />
+            あり ({hasWarrantyCounts['true'] || 0})
+          </label>
+          <label>
+            <input
+              type="checkbox"
+              name="has_warranty"
+              value="false"
+              checked={searchParams.has('has_warranty', 'false')}
+              onChange={() => handleFilterChange('has_warranty', 'false')}
+            />
+            なし ({hasWarrantyCounts['false'] || 0})
+          </label>
         </div>
       </div>
-      <div className="products-grid">
-        {filteredProducts.map((product) => (
-          <ProductItem key={product.id} product={product} />
-        ))}
-      </div>
+      <PaginatedResourceSection
+        connection={{
+          ...collection.products,
+          nodes: filteredProducts,
+        }}
+        resourcesClassName="products-grid"
+      >
+        {({node: product, index}) => (
+          <ProductItem
+            key={product.id}
+            product={product}
+            loading={index < 8 ? 'eager' : undefined}
+          />
+        )}
+      </PaginatedResourceSection>
+      <Analytics.CollectionView
+        data={{
+          collection: {
+            id: collection.id,
+            handle: collection.handle,
+          },
+        }}
+      />
     </div>
   );
 }
+
+function ProductItem({
+  product,
+  loading,
+}: {
+  product: ProductItemFragment;
+  loading?: 'eager' | 'lazy';
+}) {
+  const variantUrl = useVariantUrl(product.handle);
+  const getMetafieldValue = (key: string) => {
+    const metafield = product.metafields?.find((m) => m.key === key);
+    return metafield?.value;
+  };
+
+  return (
+    <Link
+      className="product-item"
+      key={product.id}
+      prefetch="intent"
+      to={variantUrl}
+    >
+      {product.featuredImage && (
+        <Image
+          alt={product.featuredImage.altText || product.title}
+          aspectRatio="1/1"
+          data={product.featuredImage}
+          loading={loading}
+          sizes="(min-width: 45em) 400px, 100vw"
+        />
+      )}
+      <h4>{product.title}</h4>
+      <small>
+        <Money data={product.priceRange.minVariantPrice} />
+      </small>
+      <div className="product-meta">
+        <span className="product-condition">
+          {getMetafieldValue('condition') || '未設定'}
+        </span>
+        <span className="product-type">
+          {getMetafieldValue('is_used') === 'true' ? 'リユース品' : '新品'}
+        </span>
+      </div>
+    </Link>
+  );
+}
+
+const COLLECTION_QUERY = `#graphql
+  ${PRODUCT_ITEM_FRAGMENT}
+  query Collection(
+    $handle: String!
+    $country: CountryCode
+    $language: LanguageCode
+    $first: Int
+    $last: Int
+    $startCursor: String
+    $endCursor: String
+  ) @inContext(country: $country, language: $language) {
+    collection(handle: $handle) {
+      id
+      handle
+      title
+      description
+      products(
+        first: $first,
+        last: $last,
+        before: $startCursor,
+        after: $endCursor
+      ) {
+        nodes {
+          ...ProductItemFragment
+        }
+        pageInfo {
+          hasPreviousPage
+          hasNextPage
+          endCursor
+          startCursor
+        }
+      }
+    }
+  }
+` as const;
