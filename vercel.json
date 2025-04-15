@@ -3,5 +3,17 @@
   "framework": null,
   "buildCommand": "npm run build",
   "outputDirectory": "dist/client",
-  "installCommand": "npm install"
+  "installCommand": "npm install",
+  "functions": {
+    "api/*.js": {
+      "memory": 1024,
+      "maxDuration": 10
+    }
+  },
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/api/index.js"
+    }
+  ]
 } 
