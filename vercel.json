@@ -1,6 +1,6 @@
 {
-  "buildCommand": "remix build",
-  "devCommand": "remix dev",
+  "buildCommand": "npm run build",
+  "devCommand": "npm run dev",
   "framework": "remix",
   "outputDirectory": "dist/client",
   "regions": ["iad1"],
