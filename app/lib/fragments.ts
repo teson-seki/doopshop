@@ -328,83 +328,56 @@ import type {Product} from '@shopify/hydrogen/storefront-api-types';
 export const PRODUCT_ITEM_FRAGMENT = `#graphql
   fragment ProductItem on Product {
     id
-    title
     handle
-    vendor
-    description
+    title
+    featuredImage {
+      id
+      altText
+      url
+      width
+      height
+    }
     priceRange {
       minVariantPrice {
         amount
         currencyCode
       }
     }
-    images(first: 1) {
-      nodes {
-        id
-        url
-        altText
-        width
-        height
-      }
-    }
-    variants(first: 1) {
-      nodes {
-        id
-        title
-        availableForSale
-        price {
-          amount
-          currencyCode
-        }
-      }
-    }
-    metafields(identifiers: [
-      {namespace: "custom", key: "model_number"}
-      {namespace: "custom", key: "condition"}
-      {namespace: "custom", key: "box"}
-      {namespace: "custom", key: "accessories"}
-      {namespace: "custom", key: "warranty"}
-      {namespace: "custom", key: "product_type"}
-    ]) {
-      id
-      namespace
+    metafields(
+      identifiers: [
+        {namespace: "custom", key: "model_number"}
+        {namespace: "custom", key: "condition"}
+        {namespace: "custom", key: "box"}
+        {namespace: "custom", key: "accessories"}
+        {namespace: "custom", key: "warranty"}
+        {namespace: "custom", key: "product_type"}
+      ]
+    ) {
       key
       value
-      type
     }
   }
 ` as const;
 
 export type ProductItemFragment = {
   id: string;
-  title: string;
   handle: string;
-  vendor: string;
-  description: string;
+  title: string;
+  featuredImage: {
+    id: string;
+    altText: string | null;
+    url: string;
+    width: number;
+    height: number;
+  } | null;
   priceRange: {
     minVariantPrice: {
       amount: string;
       currencyCode: string;
     };
   };
-  images: {
-    nodes: Array<{
-      id: string;
-      url: string;
-      altText: string | null;
-      width: number;
-      height: number;
-    }>;
-  };
-  variants: {
-    nodes: Array<{
-      id: string;
-      title: string;
-      availableForSale: boolean;
-      price: {
-        amount: string;
-        currencyCode: string;
-      };
-    }>;
-  };
+  metafields: Array<{
+    key: string;
+    value: string;
+  }>;
 };

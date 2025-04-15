@@ -1,9 +1,9 @@
 import {json, type LoaderFunctionArgs} from '@shopify/remix-oxygen';
 import {useLoaderData, Link, type MetaFunction} from '@remix-run/react';
 import {Pagination, getPaginationVariables} from '@shopify/hydrogen';
-import {PRODUCT_ITEM_FRAGMENT, type ProductItemFragment} from '~/lib/fragments';
+import {type ProductItemFragment} from '~/lib/fragments';
 import {ProductItem} from '~/components/ProductItem';
-import {COLLECTION_QUERY} from '~/graphql/queries';
+import {COLLECTION_QUERY, CATALOG_QUERY} from '~/graphql/queries';
 import {PaginatedResourceSection} from '~/components/PaginatedResourceSection';
 
 export const meta: MetaFunction<typeof loader> = () => {
