@@ -1,7 +1,8 @@
 {
   "version": 2,
   "framework": "remix",
-  "buildCommand": "shopify hydrogen build",
-  "devCommand": "shopify hydrogen dev",
-  "outputDirectory": "dist"
+  "buildCommand": "npm install -g @shopify/cli && npm run build",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install",
+  "outputDirectory": "dist/client"
 } 
