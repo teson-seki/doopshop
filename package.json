@@ -5,12 +5,12 @@
   "version": "2025.1.6",
   "type": "module",
   "scripts": {
-    "build": "shopify hydrogen build --codegen",
-    "dev": "shopify hydrogen dev --codegen",
-    "preview": "shopify hydrogen preview --build",
+    "build": "npx shopify hydrogen build --codegen",
+    "dev": "npx shopify hydrogen dev --codegen",
+    "preview": "npx shopify hydrogen preview --build",
     "lint": "eslint --no-error-on-unmatched-pattern .",
     "typecheck": "tsc --noEmit",
-    "codegen": "shopify hydrogen codegen"
+    "codegen": "npx shopify hydrogen codegen"
   },
   "prettier": "@shopify/prettier-config",
   "dependencies": {
