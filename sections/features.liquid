@@ -1,0 +1,108 @@
+{{ 'section-features.css' | asset_url | stylesheet_tag }}
+
+<div class="features-section page-width">
+  <h2 class="features-section__heading">{{ section.settings.heading | escape }}</h2>
+  <div class="features-section__grid">
+    <div class="feature-card">
+      <div class="feature-card__icon">
+        {% render 'icon-wallet' %}
+      </div>
+      <h3 class="feature-card__title">コストを抑えたスマートな買い物</h3>
+      <p class="feature-card__text">新品同様の商品をお得な価格で。賢い選択で、あなたの生活をより豊かに。</p>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-card__icon">
+        {% render 'icon-check-circle' %}
+      </div>
+      <h3 class="feature-card__title">専門スタッフによる動作チェック済</h3>
+      <p class="feature-card__text">すべての商品は熟練スタッフが丁寧に検品。安心してお使いいただけます。</p>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-card__icon">
+        {% render 'icon-leaf' %}
+      </div>
+      <h3 class="feature-card__title">サステナブルな選択</h3>
+      <p class="feature-card__text">リユースを選ぶことは、環境にやさしい選択。次世代への贈り物です。</p>
+    </div>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Features Section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "選ばれる3つの理由"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Features Section",
+      "category": "Features"
+    }
+  ]
+}
+{% endschema %}
+
+{% stylesheet %}
+.features-section {
+  padding: 4rem 0;
+  text-align: center;
+}
+
+.features-section__heading {
+  margin-bottom: 3rem;
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.features-section__grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+}
+
+@media screen and (min-width: 750px) {
+  .features-section__grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.feature-card {
+  padding: 2rem;
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease;
+}
+
+.feature-card:hover {
+  transform: translateY(-5px);
+}
+
+.feature-card__icon {
+  margin-bottom: 1.5rem;
+}
+
+.feature-card__icon svg {
+  width: 48px;
+  height: 48px;
+  color: var(--color-primary);
+}
+
+.feature-card__title {
+  margin-bottom: 1rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.feature-card__text {
+  color: rgb(107, 114, 128);
+  line-height: 1.5;
+}
+{% endstylesheet %} 
