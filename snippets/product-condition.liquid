@@ -1,0 +1,84 @@
+{% assign condition = product.metafields.custom.condition %}
+{% if condition != blank %}
+  <div class="product-condition">
+    <span class="product-condition__label">コンディション:</span>
+    <span class="product-condition__value condition-{{ condition | downcase }}">
+      {{ condition }}
+    </span>
+    <div class="product-condition__description">
+      {% case condition %}
+        {% when '新品、未使用' %}
+          新品・未使用の商品です。商品タグが付いている状態です。
+        {% when '未使用に近い' %}
+          未使用に近い商品です。試着程度の使用で、目立った傷や汚れはありません。
+        {% when '目立った傷や汚れなし' %}
+          使用回数が少なく、全体的に状態の良い商品です。
+        {% when 'やや傷や汚れあり' %}
+          使用感があり、部分的に傷や汚れがある商品です。
+        {% when '傷や汚れあり' %}
+          使用感があり、目立つ傷や汚れがある商品です。
+        {% when '全体的に状態が悪い' %}
+          使用感が強く、全体的に状態が悪い商品です。
+      {% endcase %}
+    </div>
+  </div>
+{% endif %}
+
+<style>
+.product-condition {
+  margin: 1rem 0;
+  padding: 1rem;
+  border-radius: 8px;
+  background-color: #f9fafb;
+}
+
+.product-condition__label {
+  font-weight: 600;
+  margin-right: 0.5rem;
+}
+
+.product-condition__value {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.condition-新品、未使用 {
+  background-color: #10b981;
+  color: white;
+}
+
+.condition-未使用に近い {
+  background-color: #3b82f6;
+  color: white;
+}
+
+.condition-目立った傷や汚れなし {
+  background-color: #6366f1;
+  color: white;
+}
+
+.condition-やや傷や汚れあり {
+  background-color: #f59e0b;
+  color: white;
+}
+
+.condition-傷や汚れあり {
+  background-color: #ef4444;
+  color: white;
+}
+
+.condition-全体的に状態が悪い {
+  background-color: #7c3aed;
+  color: white;
+}
+
+.product-condition__description {
+  margin-top: 0.75rem;
+  font-size: 0.875rem;
+  color: #6b7280;
+  line-height: 1.5;
+}
+</style> 

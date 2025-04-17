@@ -1,0 +1,260 @@
+{% comment %}
+  Renders a product card
+
+  Accepts:
+  - product_card_product: {Object} Product Liquid object (optional)
+  - media_size: {String} Size of the product image card. Values are "square" and "portrait". Default is "square" (optional)
+  - show_secondary_image: {Boolean} Show the secondary image on hover. Default: false (optional)
+  - add_image_padding: {Boolean} Enables padding on the image to space out the grid
+  - show_vendor: {Boolean} Show the product vendor. Default: false
+  - show_rating: {Boolean} Show the product rating. Default: false
+  - extend_height: {Boolean} Card height extends to available container space. Default: true
+  - lazy_load: {Boolean} Image should be lazy loaded. Default: true (optional)
+  - show_quick_add: {Boolean} Show the quick add button. Default: false (optional)
+  - section_id: {String} The ID of the section that contains this card
+{% endcomment %}
+
+{%- if product_card_product and product_card_product != empty -%}
+  {%- liquid
+    assign ratio = 1
+    if product_card_product.featured_media and media_size == 'portrait'
+      assign ratio = 0.8
+    elsif product_card_product.featured_media and media_size == 'square'
+      assign ratio = 1
+    endif
+  -%}
+
+  <div class="card-wrapper product-card-wrapper underline-links-hover">
+    <div
+      class="
+        card
+        card--{{ settings.card_style }}
+        {% if product_card_product.featured_media %} card--media{% else %} card--text{% endif %}
+        {% if settings.card_style == 'card' %} color-{{ settings.card_color_scheme }} gradient{% endif %}
+        {% if extend_height %} card--extend-height{% endif %}
+      "
+    >
+      <div
+        class="card__inner {% if settings.card_style == 'card' %}color-{{ settings.card_color_scheme }} gradient{% endif %}{% if product_card_product.featured_media or settings.card_style == 'card' %} ratio{% endif %}"
+        style="--ratio-percent: {{ 1 | divided_by: ratio | times: 100 }}%"
+      >
+        {%- if product_card_product.featured_media -%}
+          <div class="card__media">
+            <div class="media media--transparent media--hover-effect">
+              {% comment %} TODO: update to render sizes instead of hardcoding them {% endcomment %}
+              {{
+                product_card_product.featured_media
+                | image_url: width: 533
+                | image_tag:
+                  loading: 'lazy',
+                  width: product_card_product.featured_media.width,
+                  height: product_card_product.featured_media.height,
+                  sizes: '(min-width: 1100px) 535px, (min-width: 750px) calc((100vw - 130px) / 2), calc((100vw - 50px) / 2)'
+              }}
+
+              {%- if product_card_product.media[1] != null and show_secondary_image -%}
+                {{
+                  product_card_product.media[1]
+                  | image_url: width: 533
+                  | image_tag:
+                    class: 'secondary-media',
+                    loading: 'lazy',
+                    width: product_card_product.media[1].width,
+                    height: product_card_product.media[1].height,
+                    sizes: '(min-width: 1100px) 535px, (min-width: 750px) calc((100vw - 130px) / 2), calc((100vw - 50px) / 2)'
+                }}
+              {%- endif -%}
+            </div>
+          </div>
+        {%- endif -%}
+
+        <div class="card__content">
+          <div class="card__information">
+            <h3
+              class="card__heading"
+              {% if product_card_product.featured_media == nil and settings.card_style == 'card' %}
+                id="title-{{ section_id }}-{{ product_card_product.id }}"
+              {% endif %}
+            >
+              <a
+                href="{{ product_card_product.url }}"
+                class="full-unstyled-link"
+                aria-labelledby="title-{{ section_id }}-{{ product_card_product.id }}"
+              >
+                {{ product_card_product.title | escape }}
+              </a>
+            </h3>
+
+            <div class="card__badges">
+              {%- if product_card_product.metafields.custom.condition != blank -%}
+                <div class="product-card__badge condition-{{ product_card_product.metafields.custom.condition }}">
+                  {{ product_card_product.metafields.custom.condition }}
+                </div>
+              {%- endif -%}
+              
+              {%- if product_card_product.metafields.custom.category != blank -%}
+                <span class="badge category-badge">
+                  {{ product_card_product.metafields.custom.category }}
+                </span>
+              {%- endif -%}
+            </div>
+
+            <div class="card__price">
+              {% render 'price', product: product_card_product, show_compare_at_price: true %}
+            </div>
+          </div>
+
+          {%- if show_quick_add -%}
+            <div class="quick-add no-js-hidden">
+              {%- liquid
+                assign product_form_id = 'quick-add-' | append: section_id | append: product_card_product.id
+                assign qty_rules = false
+                if product_card_product.selected_or_first_available_variant.quantity_rule.min > 1 or product_card_product.selected_or_first_available_variant.quantity_rule.max != null or product_card_product.selected_or_first_available_variant.quantity_rule.increment > 1
+                  assign qty_rules = true
+                endif
+              -%}
+
+              {% render 'product-form',
+                product: product_card_product,
+                product_form_id: product_form_id,
+                show_quantity: qty_rules,
+                show_payment_button: false,
+                show_pickup_availability: false,
+                section_id: section_id
+              %}
+            </div>
+          {%- endif -%}
+        </div>
+      </div>
+      <div class="card__content">
+        <div class="card__information">
+          <h3
+            class="card__heading{% if product_card_product.featured_media or settings.card_style == 'card' %} h5{% endif %}"
+            {% if product_card_product.featured_media or settings.card_style == 'card' %}
+              id="title-{{ section_id }}-{{ product_card_product.id }}"
+            {% endif %}
+          >
+            <a
+              href="{{ product_card_product.url }}"
+              id="StandardCardNoMediaLink-{{ section_id }}-{{ product_card_product.id }}"
+              class="full-unstyled-link"
+              aria-labelledby="StandardCardNoMediaLink-{{ section_id }}-{{ product_card_product.id }} NoMediaStandardBadge-{{ section_id }}-{{ product_card_product.id }}"
+            >
+              {{ product_card_product.title | escape }}
+            </a>
+          </h3>
+        </div>
+      </div>
+    </div>
+  </div>
+{%- else -%}
+  <div class="product-card-wrapper card-wrapper underline-links-hover">
+    <div
+      class="
+        card
+        card--{{ settings.card_style }}
+        card--text
+        {% if extend_height %} card--extend-height{% endif %}
+        {% if settings.card_style == 'card' %} color-{{ settings.card_color_scheme }} gradient{% endif %}
+      "
+    >
+      <div
+        class="card__inner {% if settings.card_style == 'card' %}color-{{ settings.card_color_scheme }} gradient{% endif %}"
+      >
+        <div class="card__content">
+          <div class="card__information">
+            <h3 class="card__heading">
+              <a role="link" aria-disabled="true" class="full-unstyled-link">
+                {{ 'onboarding.product_title' | t }}
+              </a>
+            </h3>
+          </div>
+        </div>
+      </div>
+      <div class="card__content">
+        <div class="card__information">
+          <h3 class="card__heading card__heading--price h5">
+            <a role="link" aria-disabled="true" class="full-unstyled-link">
+              {{ 'onboarding.product_title' | t }}
+            </a>
+          </h3>
+        </div>
+      </div>
+    </div>
+  </div>
+{%- endif -%}
+
+<style>
+.card__badges {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  display: flex;
+  gap: 0.5rem;
+  z-index: 1;
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.condition-badge {
+  color: white;
+}
+
+.condition-s {
+  background-color: #10b981;
+}
+
+.condition-a {
+  background-color: #3b82f6;
+}
+
+.condition-b {
+  background-color: #f59e0b;
+}
+
+.condition-c {
+  background-color: #ef4444;
+}
+
+.category-badge {
+  background-color: #e5e7eb;
+  color: #374151;
+}
+
+.product-card__badge.condition-新品、未使用 {
+  background-color: #10b981;
+  color: white;
+}
+
+.product-card__badge.condition-未使用に近い {
+  background-color: #3b82f6;
+  color: white;
+}
+
+.product-card__badge.condition-目立った傷や汚れなし {
+  background-color: #6366f1;
+  color: white;
+}
+
+.product-card__badge.condition-やや傷や汚れあり {
+  background-color: #f59e0b;
+  color: white;
+}
+
+.product-card__badge.condition-傷や汚れあり {
+  background-color: #ef4444;
+  color: white;
+}
+
+.product-card__badge.condition-全体的に状態が悪い {
+  background-color: #7c3aed;
+  color: white;
+}
+</style> 
